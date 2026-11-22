@@ -41,6 +41,20 @@ class MissionTest {
     }
 
     @Test
+    fun `robot ignores move into the starting position of a robot that has not moved yet`() {
+        val results = Mission(grid, listOf(robot(1, 1, N, "FRF"), robot(1, 2, S, "F"))).run()
+
+        results[0] shouldBe RobotResult(RobotState(Position(2, 1), E), lost = false)
+    }
+
+    @Test
+    fun `robot that moves away frees its starting position for later robots`() {
+        val results = Mission(grid, listOf(robot(1, 1, N, "F"), robot(2, 1, W, "F"))).run()
+
+        results[1] shouldBe RobotResult(RobotState(Position(1, 1), W), lost = false)
+    }
+
+    @Test
     fun `lost robot does not block a later robot`() {
         val results = Mission(grid, listOf(robot(2, 3, N, "F"), robot(2, 2, N, "F"))).run()
 
@@ -53,12 +67,10 @@ class MissionTest {
     }
 
     @Test
-    fun `rejects a robot starting on a position held by an earlier robot`() {
-        val error = shouldThrow<InvalidStartException> {
-            Mission(grid, listOf(robot(1, 1, N, "R"), robot(0, 0, E, "F"), robot(1, 1, S, "F"))).run()
+    fun `cannot be created with two robots on the same starting position`() {
+        shouldThrow<IllegalArgumentException> {
+            Mission(grid, listOf(robot(1, 1, N, "R"), robot(0, 0, E, "F"), robot(1, 1, S, "F")))
         }
-
-        error.robotIndex shouldBe 2
     }
 
     @Test

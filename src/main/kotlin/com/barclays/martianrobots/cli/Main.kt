@@ -1,6 +1,5 @@
 package com.barclays.martianrobots.cli
 
-import com.barclays.martianrobots.domain.InvalidStartException
 import com.barclays.martianrobots.domain.Mission
 import com.barclays.martianrobots.domain.RobotResult
 import java.io.File
@@ -24,11 +23,7 @@ fun main(args: Array<String>) {
 // Every robot runs before anything is written, so invalid input never produces partial output.
 fun runRobots(input: Reader, output: Writer) {
     val parsed = InputParser.parse(input.readLines())
-    val results = try {
-        Mission(parsed.grid, parsed.robots).run()
-    } catch (e: InvalidStartException) {
-        throw InvalidInputException(parsed.robotLineNumbers[e.robotIndex], e.message.orEmpty())
-    }
+    val results = Mission(parsed.grid, parsed.robots).run()
     results.forEach { output.write(format(it) + "\n") }
     output.flush()
 }

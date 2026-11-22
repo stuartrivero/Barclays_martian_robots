@@ -37,7 +37,7 @@ Run `./gradlew build` before you call any task done. It must pass.
 
 ## Tests
 
-- Every behaviour change comes with a test. Focus on the edge cases: lost robots on each edge, scent ignoring a move, scent at corners, moves into positions occupied by earlier robots, and invalid input.
+- Every behaviour change comes with a test. Focus on the edge cases: lost robots on each edge, scent ignoring a move, scent at corners, moves into positions occupied by other robots (finished or still at their start), and invalid input.
 - Name tests after the behaviour, for example `` `robot ignores move off grid from scented point` ``.
 - Keep the end-to-end sample test (brief input → brief output) passing.
 
