@@ -3,7 +3,7 @@
 A small Kotlin command-line program that simulates robots moving around a bounded grid on Mars.
 Robots that drive off the edge are lost, and leave a "scent" that stops later robots falling off at the same point.
 
-<!-- TODO: one-line summary of the approach once built, e.g. "Pure domain model + thin CLI; ~N lines of code." -->
+A pure, immutable domain model with a thin command-line adapter around it: about 260 lines of code and 50 tests, using only the Kotlin standard library.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Run against the sample input from the brief:
 ./gradlew run -q --args="sample-input.txt"
 ```
 
-Or pipe input on stdin:
+Or pipe the input in on stdin, which is used when no file is given:
 
 ```bash
 ./gradlew run -q < sample-input.txt
@@ -38,7 +38,7 @@ Expected output:
 2 3 S
 ```
 
-<!-- TODO: confirm the exact run commands once the CLI exists (file arg vs stdin vs both). -->
+Invalid input prints an error naming the line to stderr and exits with code 1 (see [Error handling](#error-handling)). When the app runs through Gradle, Gradle adds its own failure message after the error.
 
 ## Running the tests
 
@@ -46,16 +46,14 @@ Expected output:
 ./gradlew test
 ```
 
-The tests cover:
+The tests are in `src/test/kotlin/com/barclays/martianrobots/`, one class per production class (for example `domain/RobotTest` and `cli/InputParserTest`). They cover:
 
 - **Each command on its own**: turning left and right through all four orientations, and moving forward in each direction.
 - **Lost robots**: driving off each of the four edges, and reporting the last position on the grid with `LOST`.
 - **Scent**: a later robot ignores a move off the grid from a scented point, carries on with the rest of its instructions, and can still be lost at a *different*, unscented point.
 - **Collisions**: a move into a position held by an earlier robot is ignored, a lost robot doesn't block anything, and a robot starting on an occupied position is rejected.
 - **Parsing**: valid input, and each kind of invalid input (see [Error handling](#error-handling)).
-- **End to end**: the sample input from the brief produces the sample output.
-
-<!-- TODO: update to match the real test classes. -->
+- **End to end**: the sample input from the brief produces the sample output, start-position errors are reported with the robot's line number, and nothing is printed when a later robot is invalid. These run in memory through `runRobots(Reader, Writer)`.
 
 ## Design
 
@@ -85,15 +83,13 @@ src/main/kotlin/com/barclays/martianrobots/
 
 ## Assumptions and decisions
 
-<!-- TODO: confirm or edit each of these as you implement. -->
-
 1. **Scent belongs to a grid point, whatever the direction.** The brief says a scent is left "at the last grid position" and that a move off the world "from a grid point from which a robot has been previously lost" is ignored. So a robot on a scented point is protected from falling off in *any* direction, not only the direction the earlier robot took. For example, a corner point protects both of its edges.
 2. **A lost robot stops.** It runs none of its remaining instructions and reports its last position on the grid followed by `LOST`.
 3. **Ignored moves don't end the robot's run.** The robot just carries on with the next instruction.
 4. **Grid size.** The input gives the upper-right corner, and the lower-left corner is `0 0`. Both coordinates must be between 0 and 50. A grid of `0 0` (a single point) is allowed.
 5. **Starting positions** must be inside the grid. A robot that starts outside it is rejected as invalid input, not reported as `LOST`, because it was never on the grid to be lost from.
 6. **Every robot has exactly two lines:** a position line, and on the very next line its instructions, with at least one command. If the next line is blank or missing, the input is invalid.
-7. **Whitespace.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are ignored after the grid line and between robots, but not between a robot's position line and its instructions (see 6).
+7. **Whitespace.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are ignored after the grid line and between robots, but not between a robot's position line and its instructions (see 6). The instruction line is a single token, so a space inside it, as in `F F`, is reported as an unknown command.
 8. **Robots can't move into an occupied position.** Robots run one after another, and each robot that isn't lost stays at its final position. A later robot's move into one of those positions is ignored, and the robot carries on with its next instruction, just like a move blocked by scent. Lost robots have left the grid, so they leave scent but don't occupy a position. A robot whose starting position is already occupied is rejected as invalid input.
 
 ## Error handling
@@ -110,7 +106,7 @@ The brief gives limits (coordinates up to 50, instructions under 100 characters,
 | Starting position outside the grid | Error naming the line number, exit code 1 |
 | Starting position already occupied by an earlier robot | Error naming the line number, exit code 1 |
 
-**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. An occupied starting position can only be detected while the robots run, so `Mission` reports which robot failed, and the CLI turns that into a line number.
+**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. The parser only checks the text. The starting-position rules belong to the domain, and an occupied position can only be detected while the robots run, so `Mission` checks both starting-position rules and reports which robot failed. The CLI turns that into a line number.
 
 ## What I'd do with more time
 
