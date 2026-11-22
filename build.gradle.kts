@@ -27,6 +27,11 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+    // Gradle only reports failing tests by default. Listing every test makes the
+    // behaviour-named tests visible when a reviewer runs the build.
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 tasks.named<JavaExec>("run") {
