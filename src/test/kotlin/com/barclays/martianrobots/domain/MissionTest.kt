@@ -62,11 +62,9 @@ class MissionTest {
     }
 
     @Test
-    fun `rejects a robot starting outside the grid`() {
-        val error = shouldThrow<InvalidStartException> {
-            Mission(grid, listOf(robot(1, 1, N, "R"), robot(6, 0, E, "F"))).run()
+    fun `cannot be created with a robot starting outside the grid`() {
+        shouldThrow<IllegalArgumentException> {
+            Mission(grid, listOf(robot(1, 1, N, "R"), robot(6, 0, E, "F")))
         }
-
-        error.robotIndex shouldBe 1
     }
 }

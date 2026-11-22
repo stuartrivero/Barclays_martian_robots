@@ -4,21 +4,26 @@ class InvalidStartException(val robotIndex: Int, message: String) : IllegalArgum
 
 data class Mission(val grid: Grid, val robots: List<Robot>) {
 
+    init {
+        robots.forEach { robot ->
+            val start = robot.start.position
+            require(grid.contains(start)) { "starting position ${start.x} ${start.y} is outside the grid" }
+        }
+    }
+
     // Robots run one after another, each on the grid left by the ones before it,
-    // because scent and occupied positions only matter across robots.
+    // because scent and occupied positions only matter across robots. That is also
+    // why an occupied start can only be found while running, not up front.
     fun run(): List<RobotResult> =
         robots.withIndex()
             .fold(emptyList<RobotResult>() to grid) { (results, current), (index, robot) ->
-                checkStart(current, index, robot.start.position)
+                checkStartIsFree(current, index, robot.start.position)
                 val run = robot.run(current)
                 (results + run.result) to run.grid
             }
             .first
 
-    private fun checkStart(grid: Grid, index: Int, start: Position) {
-        if (!grid.contains(start)) {
-            throw InvalidStartException(index, "starting position ${start.x} ${start.y} is outside the grid")
-        }
+    private fun checkStartIsFree(grid: Grid, index: Int, start: Position) {
         if (grid.isOccupied(start)) {
             throw InvalidStartException(index, "starting position ${start.x} ${start.y} is already occupied")
         }

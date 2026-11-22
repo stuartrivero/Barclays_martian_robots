@@ -106,7 +106,7 @@ The brief gives limits (coordinates up to 50, instructions under 100 characters,
 | Starting position outside the grid | Error naming the line number, exit code 1 |
 | Starting position already occupied by an earlier robot | Error naming the line number, exit code 1 |
 
-**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. The parser only checks the text. The starting-position rules belong to the domain, and an occupied position can only be detected while the robots run, so `Mission` checks both starting-position rules and reports which robot failed. The CLI turns that into a line number.
+**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. Everything that can be checked from the file alone, including a starting position outside the grid, is checked by the parser before any robot runs. The one exception is an occupied starting position: it depends on where earlier robots finish, so it can only be found by running them. `Mission` reports which robot failed, and the CLI turns that into a line number.
 
 ## What I'd do with more time
 
