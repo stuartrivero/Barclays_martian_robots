@@ -56,26 +56,6 @@ The tests cover:
 
 <!-- TODO: update to match the real test classes. -->
 
-## Design
-
-<!-- TODO: adjust to match the code as it ends up. Keep this section short. -->
-
-```
-src/main/kotlin/
-  Orientation.kt   N/E/S/W, with left/right turns and the (dx, dy) step for each
-  Position.kt      x, y and orientation
-  Grid.kt          bounds plus the set of scented points
-  Command.kt       the Command interface, and Left / Right / Forward
-  Robot.kt         runs a robot's commands against a grid
-  InputParser.kt   text -> grid and robot instructions, with validation
-  Main.kt          CLI: reads input, prints results
-```
-
-- **Domain and I/O are separate.** The simulation is plain Kotlin with no I/O. Parsing and printing sit around the edge, so the core is easy to test directly.
-- **Adding commands.** Each command implements a small `Command` interface. Commands are looked up by their letter in a single registry. Adding a new command (for example `B` for back) means writing one class and registering it. The robot, grid and parser stay as they are.
-- **Scent belongs to the grid.** Scent is shared by all robots, so the `Grid` owns it and tracks it across robots run one after another. Robots ask the grid before taking a step that would lose them.
-- **Mostly immutable.** <!-- TODO: say whether Position/Robot state is immutable (copy-on-move) and why. -->
-
 ## Assumptions and decisions
 
 <!-- TODO: confirm or edit each of these as you implement. -->

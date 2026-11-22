@@ -1,16 +1,16 @@
 package com.barclays.martianrobots
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Test
 
 class AppTest {
     @Test
     fun `greets Mars by default`() {
-        assertEquals("Hello, Mars!", greeting())
+        greeting() shouldBe "Hello, Mars!"
     }
 
     @Test
     fun `greets the given name`() {
-        assertEquals("Hello, Robot!", greeting("Robot"))
+        greeting("Robot") shouldBe "Hello, Robot!"
     }
 }

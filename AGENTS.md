@@ -9,8 +9,8 @@ This is a timeboxed tech test, the "Martian Robots" problem. The reviewers are j
 ## Stack
 
 - Kotlin on the JVM, built with Gradle (Kotlin DSL) and the Gradle wrapper.
-- JDK toolchain: <!-- TODO: 21 or 25 -->. It is resolved through the foojay resolver plugin in `settings.gradle.kts`.
-- Tests: JUnit 5 <!-- TODO: plus kotlin.test / AssertJ / Kotest assertions — pick one -->.
+- JDK toolchain: 25. It is resolved through the foojay resolver plugin in `settings.gradle.kts`.
+- Tests: JUnit 6 with Kotest assertions (`shouldBe`, `shouldThrow` and so on). Don't add other assertion libraries.
 - The only libraries are the Kotlin standard library and test dependencies.
 
 ## Commands
