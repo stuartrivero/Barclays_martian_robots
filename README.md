@@ -7,7 +7,9 @@ Robots that drive off the edge are lost, and leave a "scent" that stops later ro
 
 ## Requirements
 
-- A JDK (any version Gradle can run on). The build uses a Gradle toolchain for Java <!-- TODO: 21 or 25 -->, which Gradle downloads automatically if it isn't installed.
+- JDK 17 or newer on your `PATH` (or `JAVA_HOME` set) to launch Gradle. If JDK 25 isn't installed, Gradle downloads it for building and testing.
+- Java 25 or newer to run the built app outside Gradle.
+- Internet access on the first build, so the Gradle wrapper can download Gradle, the project dependencies and JDK 25 if needed.
 - Nothing else. The Gradle wrapper is included, so you don't need Gradle installed.
 
 ## Build and run
