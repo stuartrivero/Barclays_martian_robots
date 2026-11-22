@@ -109,7 +109,7 @@ The brief gives limits (coordinates up to 50, instructions under 100 characters,
 | Position line with no instruction line after it | Error, exit code 1 |
 | Starting position already occupied by an earlier robot | Error naming the line number, exit code 1 |
 
-<!-- TODO: decide whether the whole input is validated before any output (all-or-nothing), or robots are processed until the first bad one. All-or-nothing is the simpler choice to explain. -->
+**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. An occupied starting position can only be detected while the robots run, so `Mission` reports which robot failed, and the CLI turns that into a line number.
 
 ## What I'd do with more time
 
