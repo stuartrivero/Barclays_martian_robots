@@ -17,10 +17,10 @@ data class Mission(val grid: Grid, val robots: List<Robot>) {
 
     private fun checkStart(grid: Grid, index: Int, start: Position) {
         if (!grid.contains(start)) {
-            throw InvalidStartException(index, "Starting position ${start.x} ${start.y} is outside the grid")
+            throw InvalidStartException(index, "starting position ${start.x} ${start.y} is outside the grid")
         }
         if (grid.isOccupied(start)) {
-            throw InvalidStartException(index, "Starting position ${start.x} ${start.y} is already occupied")
+            throw InvalidStartException(index, "starting position ${start.x} ${start.y} is already occupied")
         }
     }
 }

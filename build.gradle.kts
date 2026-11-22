@@ -22,9 +22,13 @@ kotlin {
 }
 
 application {
-    mainClass = "com.barclays.martianrobots.AppKt"
+    mainClass = "com.barclays.martianrobots.cli.MainKt"
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }
