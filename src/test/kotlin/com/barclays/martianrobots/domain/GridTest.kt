@@ -49,6 +49,14 @@ class GridTest {
     }
 
     @Test
+    fun `removing an occupied position returns a new grid and leaves the original unchanged`() {
+        val occupied = grid.withOccupied(Position(1, 1))
+
+        occupied.withoutOccupied(Position(1, 1)).isOccupied(Position(1, 1)) shouldBe false
+        occupied.isOccupied(Position(1, 1)) shouldBe true
+    }
+
+    @Test
     fun `coordinates up to 50 are allowed`() {
         Grid(upperRight = Position(Grid.MAX_COORDINATE, Grid.MAX_COORDINATE))
             .contains(Position(50, 50)) shouldBe true

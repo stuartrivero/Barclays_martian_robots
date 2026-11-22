@@ -37,12 +37,8 @@ class MainTest {
     }
 
     @Test
-    fun `a starting position already occupied is reported with its line number`() {
-        val error = shouldThrow<InvalidInputException> {
-            runOn("5 3\n1 1 N\nR\n\n1 1 E\nF\n")
-        }
-
-        error.message shouldBe "Line 5: starting position 1 1 is already occupied"
+    fun `robot is blocked by a later robot waiting at its starting position`() {
+        runOn("5 3\n1 1 N\nF\n\n1 2 E\nF\n") shouldBe "1 1 N\n2 2 E\n"
     }
 
     @Test

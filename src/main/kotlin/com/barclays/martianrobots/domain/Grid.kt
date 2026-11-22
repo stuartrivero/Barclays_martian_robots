@@ -22,6 +22,8 @@ data class Grid(
 
     fun withOccupied(position: Position): Grid = copy(occupied = occupied + position)
 
+    fun withoutOccupied(position: Position): Grid = copy(occupied = occupied - position)
+
     companion object {
         const val MAX_COORDINATE = 50
     }

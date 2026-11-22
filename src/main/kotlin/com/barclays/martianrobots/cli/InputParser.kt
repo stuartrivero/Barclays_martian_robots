@@ -10,7 +10,7 @@ import com.barclays.martianrobots.domain.RobotState
 
 class InvalidInputException(lineNumber: Int, problem: String) : IllegalArgumentException("Line $lineNumber: $problem")
 
-data class ParsedInput(val grid: Grid, val robots: List<Robot>, val robotLineNumbers: List<Int>)
+data class ParsedInput(val grid: Grid, val robots: List<Robot>)
 
 object InputParser {
 
@@ -21,7 +21,7 @@ object InputParser {
         val grid = Grid(upperRight = parseGrid(gridLine, lineNumber = 1))
 
         val robots = mutableListOf<Robot>()
-        val robotLineNumbers = mutableListOf<Int>()
+        val startLineNumbers = mutableMapOf<Position, Int>()
         var index = 1
         while (index < lines.size) {
             if (lines[index].isBlank()) {
@@ -30,15 +30,21 @@ object InputParser {
             }
             val positionLineNumber = index + 1
             val start = parseStart(lines[index], positionLineNumber, grid)
+            startLineNumbers[start.position]?.let { takenBy ->
+                throw InvalidInputException(
+                    positionLineNumber,
+                    "starting position ${start.position.x} ${start.position.y} is already taken by the robot on line $takenBy",
+                )
+            }
+            startLineNumbers[start.position] = positionLineNumber
             val instructions = lines.getOrNull(index + 1)?.trim()
             if (instructions.isNullOrEmpty()) {
                 throw InvalidInputException(positionLineNumber, "position has no instruction line after it")
             }
             robots += Robot(start, parseCommands(instructions, positionLineNumber + 1))
-            robotLineNumbers += positionLineNumber
             index += 2
         }
-        return ParsedInput(grid, robots, robotLineNumbers)
+        return ParsedInput(grid, robots)
     }
 
     private fun parseGrid(line: String, lineNumber: Int): Position {

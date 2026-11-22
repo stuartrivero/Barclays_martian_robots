@@ -21,7 +21,7 @@ class InputParserTest {
         shouldThrow<InvalidInputException> { parse(*lines) }
 
     @Test
-    fun `parses the grid and each robot with the line number of its position line`() {
+    fun `parses the grid and each robot`() {
         val input = parse("5 3", "1 1 E", "RFL", "", "3 2 N", "F")
 
         input.grid shouldBe Grid(upperRight = Position(5, 3))
@@ -29,7 +29,6 @@ class InputParserTest {
             Robot(RobotState(Position(1, 1), E), listOf(Right, Forward, Left)),
             Robot(RobotState(Position(3, 2), N), listOf(Forward)),
         )
-        input.robotLineNumbers shouldBe listOf(2, 5)
     }
 
     @Test
@@ -79,6 +78,12 @@ class InputParserTest {
         parseError("5 3", "1 1 E", "F", "6 1 N", "F").message shouldBe
             "Line 4: starting position 6 1 is outside the grid"
         parseError("5 3", "1 4 N", "F").message shouldBe "Line 2: starting position 1 4 is outside the grid"
+    }
+
+    @Test
+    fun `rejects a starting position already taken by another robot`() {
+        parseError("5 3", "1 1 E", "F", "", "2 2 N", "F", "1 1 S", "F").message shouldBe
+            "Line 7: starting position 1 1 is already taken by the robot on line 2"
     }
 
     @Test

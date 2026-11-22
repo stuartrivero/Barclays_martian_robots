@@ -1,31 +1,24 @@
 package com.barclays.martianrobots.domain
 
-class InvalidStartException(val robotIndex: Int, message: String) : IllegalArgumentException(message)
-
 data class Mission(val grid: Grid, val robots: List<Robot>) {
 
+    private val starts = robots.map { it.start.position }
+
     init {
-        robots.forEach { robot ->
-            val start = robot.start.position
+        starts.forEach { start ->
             require(grid.contains(start)) { "starting position ${start.x} ${start.y} is outside the grid" }
         }
+        require(starts.toSet().size == starts.size) { "two robots share a starting position" }
     }
 
-    // Robots run one after another, each on the grid left by the ones before it,
-    // because scent and occupied positions only matter across robots. That is also
-    // why an occupied start can only be found while running, not up front.
+    // Every robot is placed at its start before the first one moves, so each robot
+    // is blocked by the robots still waiting at their starts and by earlier robots
+    // that weren't lost. A robot frees its start as soon as it begins to run.
     fun run(): List<RobotResult> =
-        robots.withIndex()
-            .fold(emptyList<RobotResult>() to grid) { (results, current), (index, robot) ->
-                checkStartIsFree(current, index, robot.start.position)
-                val run = robot.run(current)
+        robots
+            .fold(emptyList<RobotResult>() to starts.fold(grid, Grid::withOccupied)) { (results, current), robot ->
+                val run = robot.run(current.withoutOccupied(robot.start.position))
                 (results + run.result) to run.grid
             }
             .first
-
-    private fun checkStartIsFree(grid: Grid, index: Int, start: Position) {
-        if (grid.isOccupied(start)) {
-            throw InvalidStartException(index, "starting position ${start.x} ${start.y} is already occupied")
-        }
-    }
 }
