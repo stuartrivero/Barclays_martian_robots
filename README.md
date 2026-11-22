@@ -92,8 +92,8 @@ src/main/kotlin/com/barclays/martianrobots/
 3. **Ignored moves don't end the robot's run.** The robot just carries on with the next instruction.
 4. **Grid size.** The input gives the upper-right corner, and the lower-left corner is `0 0`. Both coordinates must be between 0 and 50. A grid of `0 0` (a single point) is allowed.
 5. **Starting positions** must be inside the grid. A robot that starts outside it is rejected as invalid input, not reported as `LOST`, because it was never on the grid to be lost from.
-6. **Every robot has exactly two lines:** a position line, then an instruction line with at least one command. A position line with no instruction line after it is invalid input.
-7. **Whitespace is ignored.** Extra spaces between tokens, spaces at the start or end of a line, and blank lines are all ignored. So a blank line never counts as one of a robot's two lines.
+6. **Every robot has exactly two lines:** a position line, and on the very next line its instructions, with at least one command. If the next line is blank or missing, the input is invalid.
+7. **Whitespace.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are ignored after the grid line and between robots, but not between a robot's position line and its instructions (see 6).
 8. **Robots can't move into an occupied position.** Robots run one after another, and each robot that isn't lost stays at its final position. A later robot's move into one of those positions is ignored, and the robot carries on with its next instruction, just like a move blocked by scent. Lost robots have left the grid, so they leave scent but don't occupy a position. A robot whose starting position is already occupied is rejected as invalid input.
 
 ## Error handling
@@ -106,7 +106,7 @@ The brief gives limits (coordinates up to 50, instructions under 100 characters,
 | Coordinate outside 0–50 | Error, exit code 1 |
 | Unknown orientation or command letter | Error naming the character and line, exit code 1 |
 | Instruction of 100 characters or more | Error, exit code 1 |
-| Position line with no instruction line after it | Error naming the position line, exit code 1 |
+| Position line not followed straight away by an instruction line | Error naming the position line, exit code 1 |
 | Starting position outside the grid | Error naming the line number, exit code 1 |
 | Starting position already occupied by an earlier robot | Error naming the line number, exit code 1 |
 
