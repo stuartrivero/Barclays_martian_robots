@@ -25,7 +25,11 @@ Run `./gradlew build` before you call any task done. It must pass.
 
 ## Code conventions
 
-- Keep the domain (grid, robot, orientation, commands) free of I/O. Only `InputParser` and `Main` handle text and the console.
+- Code lives in two packages under `com.barclays.martianrobots`:
+  - `domain`: grid, robot, orientation, position and commands. No I/O, and no imports from `cli`.
+  - `cli`: `InputParser` and `Main`, the only code that handles text and the console. It depends on `domain`, never the other way round.
+- Don't add port interfaces or more packages unless a second adapter is actually needed. Ask first.
+- The entry point takes an input `Reader` and an output `Writer`. `main` passes stdin and stdout, and end-to-end tests pass in-memory streams.
 - New robot commands implement the `Command` interface and are registered by their letter. Don't add `when (char)` branches anywhere else.
 - Prefer immutable data classes and pure functions. Use clear names rather than comments, and only comment on *why* something is done, for example the scent rule.
 - Throw a clear error with the line number for invalid input. Never silently guess.

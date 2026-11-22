@@ -56,6 +56,32 @@ The tests cover:
 
 <!-- TODO: update to match the real test classes. -->
 
+## Design
+
+<!-- TODO: adjust to match the code as it ends up. Keep this section short. -->
+
+Hexagonal in spirit: a pure domain core, with parsing and console I/O as a thin adapter around it.
+
+```
+src/main/kotlin/com/barclays/martianrobots/
+  domain/
+    Orientation.kt   N/E/S/W, with left/right turns and the (dx, dy) step for each
+    Position.kt      x, y and orientation
+    Grid.kt          bounds plus the set of scented points
+    Command.kt       the Command interface, and Left / Right / Forward
+    Robot.kt         runs a robot's commands against a grid
+  cli/
+    InputParser.kt   text -> grid and robot instructions, with validation
+    Main.kt          entry point: reads input, prints results
+```
+
+- **Domain and I/O are separate.** The `domain` package is plain Kotlin with no I/O and depends on nothing else in the project. Everything that deals with text and the console lives in `cli`, so the core is easy to test directly with plain values.
+- **No formal ports.** I didn't add port interfaces (such as an `InstructionSource` or `ResultSink`), because there is only one adapter in each direction and they would each have exactly one implementation. If a second adapter turns up, for example an HTTP API or a different input format, that's the point to introduce them.
+- **Streams are passed in.** The program's entry point takes an input `Reader` and an output `Writer`, and `main` passes it stdin and stdout. The end-to-end tests run the sample input from the brief in memory, without touching files or the console.
+- **Adding commands.** Each command implements a small `Command` interface. Commands are looked up by their letter in a single registry. Adding a new command (for example `B` for back) means writing one class and registering it. The robot, grid and parser stay as they are.
+- **Scent belongs to the grid.** Scent is shared by all robots, so the `Grid` owns it and tracks it across robots run one after another. Robots ask the grid before taking a step that would lose them.
+- **Mostly immutable.** <!-- TODO: say whether Position/Robot state is immutable (copy-on-move) and why. -->
+
 ## Assumptions and decisions
 
 <!-- TODO: confirm or edit each of these as you implement. -->
