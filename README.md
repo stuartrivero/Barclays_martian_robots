@@ -1,16 +1,15 @@
-# Barclays_martian_robots
+# Barclays Martian robots
+
 YAMR Tech Test
 
-## Requirements
+## Building:
 
-- JDK 21 (resolved automatically via Gradle toolchains if missing)
+Prerequisites:
 
-## Build & run
+- JDK 17 or newer on your `PATH` (or `JAVA_HOME` set) to launch Gradle. If JDK 25 isn't installed, Gradle downloads it for building and testing.
+- Java 25 or newer to run the built app outside Gradle.
+- Internet access on the first build, so the Gradle wrapper can download Gradle, the project dependencies and JDK 25 if needed
 
-```bash
-./gradlew build   # compile and run tests
-./gradlew test    # run tests only
-./gradlew run     # run the app
 ```
-
-Dependency versions are managed in `gradle/libs.versions.toml`.
+./gradlew clean build
+```
