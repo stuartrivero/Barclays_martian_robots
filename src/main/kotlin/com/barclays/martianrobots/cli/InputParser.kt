@@ -29,7 +29,7 @@ object InputParser {
                 continue
             }
             val positionLineNumber = index + 1
-            val start = parseStart(lines[index], positionLineNumber)
+            val start = parseStart(lines[index], positionLineNumber, grid)
             val instructions = lines.getOrNull(index + 1)?.trim()
             if (instructions.isNullOrEmpty()) {
                 throw InvalidInputException(positionLineNumber, "position has no instruction line after it")
@@ -51,7 +51,7 @@ object InputParser {
         return Position(coordinate(x, lineNumber), coordinate(y, lineNumber))
     }
 
-    private fun parseStart(line: String, lineNumber: Int): RobotState {
+    private fun parseStart(line: String, lineNumber: Int, grid: Grid): RobotState {
         val tokens = line.tokens()
         val x = tokens.getOrNull(0)?.toIntOrNull()
         val y = tokens.getOrNull(1)?.toIntOrNull()
@@ -60,7 +60,11 @@ object InputParser {
         }
         val orientation = Orientation.entries.find { it.name == tokens[2] }
             ?: throw InvalidInputException(lineNumber, "unknown orientation '${tokens[2]}'")
-        return RobotState(Position(coordinate(x, lineNumber), coordinate(y, lineNumber)), orientation)
+        val position = Position(coordinate(x, lineNumber), coordinate(y, lineNumber))
+        if (!grid.contains(position)) {
+            throw InvalidInputException(lineNumber, "starting position $x $y is outside the grid")
+        }
+        return RobotState(position, orientation)
     }
 
     private fun parseCommands(instructions: String, lineNumber: Int): List<Command> {

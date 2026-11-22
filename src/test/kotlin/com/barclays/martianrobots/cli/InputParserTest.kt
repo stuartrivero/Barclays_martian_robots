@@ -75,6 +75,13 @@ class InputParserTest {
     }
 
     @Test
+    fun `rejects a starting position outside the grid`() {
+        parseError("5 3", "1 1 E", "F", "6 1 N", "F").message shouldBe
+            "Line 4: starting position 6 1 is outside the grid"
+        parseError("5 3", "1 4 N", "F").message shouldBe "Line 2: starting position 1 4 is outside the grid"
+    }
+
+    @Test
     fun `rejects an unknown orientation`() {
         parseError("5 3", "1 1 X", "F").message shouldBe "Line 2: unknown orientation 'X'"
         parseError("5 3", "1 1 n", "F").message shouldBe "Line 2: unknown orientation 'n'"
