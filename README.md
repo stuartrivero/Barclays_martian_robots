@@ -93,7 +93,7 @@ src/main/kotlin/com/barclays/martianrobots/
 4. **Grid size.** The input gives the upper-right corner, and the lower-left corner is `0 0`. Both coordinates must be between 0 and 50. A grid of `0 0` (a single point) is allowed.
 5. **Starting positions** must be inside the grid. A robot that starts outside it is rejected as invalid input, not reported as `LOST`, because it was never on the grid to be lost from.
 6. **Empty instruction lines** are allowed. The robot's final position is its starting position.
-7. **Whitespace.** Extra spaces between tokens are allowed, and blank lines between robots are skipped. <!-- TODO: confirm. -->
+7. **Whitespace is ignored.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are skipped, except the line straight after a position line, which is always that robot's instructions, even when it's empty (see 6).
 8. **Robots can't move into an occupied position.** Robots run one after another, and each robot that isn't lost stays at its final position. A later robot's move into one of those positions is ignored, and the robot carries on with its next instruction, just like a move blocked by scent. Lost robots have left the grid, so they leave scent but don't occupy a position. A robot whose starting position is already occupied is rejected as invalid input.
 
 ## Error handling
