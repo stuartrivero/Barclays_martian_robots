@@ -26,7 +26,7 @@ Run `./gradlew build` before you call any task done. It must pass.
 ## Code conventions
 
 - Code lives in two packages under `com.barclays.martianrobots`:
-  - `domain`: grid, robot, orientation, position and commands. No I/O, and no imports from `cli`.
+  - `domain`: grid, position, robot state, orientation, commands, robot and mission. No I/O, and no imports from `cli`.
   - `cli`: `InputParser` and `Main`, the only code that handles text and the console. It depends on `domain`, never the other way round.
 - Don't add port interfaces or more packages unless a second adapter is actually needed. Ask first.
 - The entry point takes an input `Reader` and an output `Writer`. `main` passes stdin and stdout, and end-to-end tests pass in-memory streams.
@@ -37,7 +37,7 @@ Run `./gradlew build` before you call any task done. It must pass.
 
 ## Tests
 
-- Every behaviour change comes with a test. Focus on the edge cases: lost robots on each edge, scent ignoring a move, scent at corners, and invalid input.
+- Every behaviour change comes with a test. Focus on the edge cases: lost robots on each edge, scent ignoring a move, scent at corners, moves into positions occupied by earlier robots, and invalid input.
 - Name tests after the behaviour, for example `` `robot ignores move off grid from scented point` ``.
 - Keep the end-to-end sample test (brief input → brief output) passing.
 

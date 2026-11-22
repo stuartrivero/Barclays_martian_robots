@@ -51,6 +51,7 @@ The tests cover:
 - **Each command on its own**: turning left and right through all four orientations, and moving forward in each direction.
 - **Lost robots**: driving off each of the four edges, and reporting the last position on the grid with `LOST`.
 - **Scent**: a later robot ignores a move off the grid from a scented point, carries on with the rest of its instructions, and can still be lost at a *different*, unscented point.
+- **Collisions**: a move into a position held by an earlier robot is ignored, a lost robot doesn't block anything, and a robot starting on an occupied position is rejected.
 - **Parsing**: valid input, and each kind of invalid input (see [Error handling](#error-handling)).
 - **End to end**: the sample input from the brief produces the sample output.
 
@@ -58,18 +59,18 @@ The tests cover:
 
 ## Design
 
-<!-- TODO: adjust to match the code as it ends up. Keep this section short. -->
-
 Hexagonal in spirit: a pure domain core, with parsing and console I/O as a thin adapter around it.
 
 ```
 src/main/kotlin/com/barclays/martianrobots/
   domain/
     Orientation.kt   N/E/S/W, with left/right turns and the (dx, dy) step for each
-    Position.kt      x, y and orientation
-    Grid.kt          bounds plus the set of scented points
+    Position.kt      x and y on the grid
+    RobotState.kt    a position plus an orientation
+    Grid.kt          bounds, scented positions and positions occupied by earlier robots
     Command.kt       the Command interface, and Left / Right / Forward
-    Robot.kt         runs a robot's commands against a grid
+    Robot.kt         runs one robot's commands against a grid
+    Mission.kt       runs robots one after another, carrying the grid between them
   cli/
     InputParser.kt   text -> grid and robot instructions, with validation
     Main.kt          entry point: reads input, prints results
@@ -78,9 +79,9 @@ src/main/kotlin/com/barclays/martianrobots/
 - **Domain and I/O are separate.** The `domain` package is plain Kotlin with no I/O and depends on nothing else in the project. Everything that deals with text and the console lives in `cli`, so the core is easy to test directly with plain values.
 - **No formal ports.** I didn't add port interfaces (such as an `InstructionSource` or `ResultSink`), because there is only one adapter in each direction and they would each have exactly one implementation. If a second adapter turns up, for example an HTTP API or a different input format, that's the point to introduce them.
 - **Streams are passed in.** The program's entry point takes an input `Reader` and an output `Writer`, and `main` passes it stdin and stdout. The end-to-end tests run the sample input from the brief in memory, without touching files or the console.
-- **Adding commands.** Each command implements a small `Command` interface. Commands are looked up by their letter in a single registry. Adding a new command (for example `B` for back) means writing one class and registering it. The robot, grid and parser stay as they are.
-- **Scent belongs to the grid.** Scent is shared by all robots, so the `Grid` owns it and tracks it across robots run one after another. Robots ask the grid before taking a step that would lose them.
-- **Mostly immutable.** <!-- TODO: say whether Position/Robot state is immutable (copy-on-move) and why. -->
+- **Commands only say where the robot wants to go.** Each command implements a small `Command` interface that turns one `RobotState` into the next, with no knowledge of the grid. `Robot` then applies the grid rules in one place: moving off the grid, scent, and positions occupied by other robots. Commands are looked up by their letter in a single registry. So adding a command (for example `B` for back) means writing one class and registering it, and it follows the lost, scent and collision rules automatically.
+- **The mission carries state between robots.** Scent and occupied positions only matter across robots, so `Mission` runs the robots in order and passes the grid from one to the next. The scent rule can be tested directly in the domain, without going through the CLI.
+- **Immutable throughout.** `Position`, `RobotState` and `Grid` are data classes, and nothing is changed in place. Running a robot returns its result and a new `Grid` with any new scent and the robot's final position added, and `Mission` folds over the robots with it. Every step is a pure function from input to output, so each rule can be tested on its own, and the order of side effects never becomes part of the behaviour.
 
 ## Assumptions and decisions
 
@@ -93,6 +94,7 @@ src/main/kotlin/com/barclays/martianrobots/
 5. **Starting positions** must be inside the grid. <!-- TODO: decide — reject the input, or report the robot as LOST straight away? -->
 6. **Empty instruction lines** are allowed. The robot's final position is its starting position.
 7. **Whitespace.** Extra spaces between tokens are allowed, and blank lines between robots are skipped. <!-- TODO: confirm. -->
+8. **Robots can't move into an occupied position.** Robots run one after another, and each robot that isn't lost stays at its final position. A later robot's move into one of those positions is ignored, and the robot carries on with its next instruction, just like a move blocked by scent. Lost robots have left the grid, so they leave scent but don't occupy a position. A robot whose starting position is already occupied is rejected as invalid input.
 
 ## Error handling
 
@@ -105,6 +107,7 @@ The brief gives limits (coordinates up to 50, instructions under 100 characters,
 | Unknown orientation or command letter | Error naming the character and line, exit code 1 |
 | Instruction of 100 characters or more | Error, exit code 1 |
 | Position line with no instruction line after it | Error, exit code 1 |
+| Starting position already occupied by an earlier robot | Error naming the line number, exit code 1 |
 
 <!-- TODO: decide whether the whole input is validated before any output (all-or-nothing), or robots are processed until the first bad one. All-or-nothing is the simpler choice to explain. -->
 
