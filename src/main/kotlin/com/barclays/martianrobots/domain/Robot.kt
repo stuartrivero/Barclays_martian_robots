@@ -4,10 +4,10 @@ data class RobotResult(val finalState: RobotState, val lost: Boolean)
 
 data class RobotRun(val result: RobotResult, val grid: Grid)
 
-data class Robot(val start: RobotState, val commands: List<Command>) {
+data class Robot(val startState: RobotState, val commands: List<Command>) {
 
     fun run(grid: Grid): RobotRun {
-        var state = start
+        var state = startState
         for (command in commands) {
             val next = command.apply(state)
             when {

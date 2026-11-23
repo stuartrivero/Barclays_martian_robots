@@ -3,13 +3,15 @@
 A small Kotlin command-line program that simulates robots moving around a bounded grid on Mars.
 Robots that drive off the edge are lost, and leave a "scent" that stops later robots falling off at the same point.
 
-A pure, immutable domain model with a thin command-line adapter around it: about 260 lines of code and 55 tests, using only the Kotlin standard library.
+A pure, immutable domain model with a thin command-line adapter around it, using only the Kotlin standard library.
 
 ## Requirements
 
-- JDK 17 or newer on your `PATH` (or `JAVA_HOME` set) to launch Gradle. If JDK 25 isn't installed, Gradle downloads it for building and testing.
+- JDK 17 or newer on your `PATH` (or `JAVA_HOME` set) to launch Gradle. If JDK 25 isn't installed, Gradle downloads it
+  for building and testing.
 - Java 25 or newer to run the built app outside Gradle.
-- Internet access on the first build, so the Gradle wrapper can download Gradle, the project dependencies and JDK 25 if needed.
+- Internet access on the first build, so the Gradle wrapper can download Gradle, the project dependencies and JDK 25 if
+  needed.
 - Nothing else. The Gradle wrapper is included, so you don't need Gradle installed.
 
 ## Build and run
@@ -38,7 +40,8 @@ Expected output:
 2 3 S
 ```
 
-Invalid input prints an error naming the line to stderr and exits with code 1 (see [Error handling](#error-handling)). When the app runs through Gradle, Gradle adds its own failure message after the error.
+Invalid input prints an error naming the line to stderr and exits with code 1 (see [Error handling](#error-handling)).
+When the app runs through Gradle, Gradle adds its own failure message after the error.
 
 ## Running the tests
 
@@ -46,14 +49,22 @@ Invalid input prints an error naming the line to stderr and exits with code 1 (s
 ./gradlew test
 ```
 
-The tests are in `src/test/kotlin/com/barclays/martianrobots/`, one class per production class (for example `domain/RobotTest` and `cli/InputParserTest`). They cover:
+The tests are in `src/test/kotlin/com/barclays/martianrobots/`, one test class per production file (for example
+`domain/RobotTest` and `cli/InputParserTest`), except `Position`, whose single step is covered by `RobotStateTest`.
+They cover:
 
-- **Each command on its own**: turning left and right through all four orientations, and moving forward in each direction.
+- **Each command on its own**: turning left and right through all four orientations, and moving forward in each
+  direction.
 - **Lost robots**: driving off each of the four edges, and reporting the last position on the grid with `LOST`.
-- **Scent**: a later robot ignores a move off the grid from a scented point, carries on with the rest of its instructions, and can still be lost at a *different*, unscented point.
-- **Collisions**: a move into a position held by another robot is ignored, whether that robot has finished or is still waiting at its start. A robot frees its start when it moves away, a lost robot doesn't block anything, and two robots with the same starting position are rejected.
+- **Scent**: a later robot ignores a move off the grid from a scented point, carries on with the rest of its
+  instructions, and can still be lost at a *different*, unscented point.
+- **Collisions**: a move into a position held by another robot is ignored, whether that robot has finished or is still
+  waiting at its start. A robot frees its start when it moves away, a lost robot doesn't block anything, and two robots
+  with the same starting position are rejected.
 - **Parsing**: valid input, and each kind of invalid input (see [Error handling](#error-handling)).
-- **End to end**: the sample input from the brief produces the sample output, start-position errors are reported with the robot's line number, and nothing is printed when a later robot is invalid. These run in memory through `runRobots(Reader, Writer)`.
+- **End to end**: the sample input from the brief produces the sample output, a starting position outside the grid is
+  reported with the robot's line number, and nothing is printed when a later robot is invalid. These run in memory
+  through `runRobots(Reader, Writer)`.
 
 ## Design
 
@@ -74,51 +85,83 @@ src/main/kotlin/com/barclays/martianrobots/
     Main.kt          entry point: reads input, prints results
 ```
 
-- **Domain and I/O are separate.** The `domain` package is plain Kotlin with no I/O and depends on nothing else in the project. Everything that deals with text and the console lives in `cli`, so the core is easy to test directly with plain values.
-- **No formal ports.** I didn't add port interfaces (such as an `InstructionSource` or `ResultSink`), because there is only one adapter in each direction and they would each have exactly one implementation. If a second adapter turns up, for example an HTTP API or a different input format, that's the point to introduce them.
-- **Streams are passed in.** The program's entry point takes an input `Reader` and an output `Writer`, and `main` passes it stdin and stdout. The end-to-end tests run the sample input from the brief in memory, without touching files or the console.
-- **Commands only say where the robot wants to go.** Each command implements a small `Command` interface that turns one `RobotState` into the next, with no knowledge of the grid. `Robot` then applies the grid rules in one place: moving off the grid, scent, and positions occupied by other robots. Commands are looked up by their letter in a single registry. So adding a command (for example `B` for back) means writing one class and registering it, and it follows the lost, scent and collision rules automatically.
-- **The mission carries state between robots.** Scent and occupied positions only matter across robots, so `Mission` places every robot at its start, then runs the robots in order and passes the grid from one to the next. The scent rule can be tested directly in the domain, without going through the CLI.
-- **Immutable throughout.** `Position`, `RobotState` and `Grid` are data classes, and nothing is changed in place. Running a robot returns its result and a new `Grid` with any new scent and the robot's final position added, and `Mission` folds over the robots with it. Every step is a pure function from input to output, so each rule can be tested on its own, and the order of side effects never becomes part of the behaviour.
+- **Domain and I/O are separate.** The `domain` package is plain Kotlin with no I/O and depends on nothing else in the
+  project. Everything that deals with text and the console lives in `cli`, so the core is easy to test directly with
+  plain values.
+- **No formal ports.** I didn't add port interfaces (such as an `InstructionSource` or `ResultSink`), because there is
+  only one adapter in each direction and they would each have exactly one implementation. If a second adapter turns up,
+  for example an HTTP API or a different input format, that's the point to introduce them.
+- **Streams are passed in.** The program's entry point takes an input `Reader` and an output `Writer`, and `main` passes
+  it stdin and stdout. The end-to-end tests run the sample input from the brief in memory, without touching files or the
+  console.
+- **Commands only say where the robot wants to go.** Each command implements a small `Command` interface that turns one
+  `RobotState` into the next, with no knowledge of the grid. `Robot` then applies the grid rules in one place: moving
+  off the grid, scent, and positions occupied by other robots. Commands are looked up by their letter in a single
+  registry. So adding a command (for example `B` for back) means writing one class and registering it, and it follows
+  the lost, scent and collision rules automatically.
+- **The mission carries state between robots.** Scent and occupied positions only matter across robots, so `Mission`
+  places every robot at its start, then runs the robots in order and passes the grid from one to the next. The scent
+  rule can be tested directly in the domain, without going through the CLI.
+- **Immutable throughout.** `Position`, `RobotState` and `Grid` are data classes, and nothing is changed in place.
+  Running a robot returns its result and a new `Grid` with any new scent and the robot's final position added, and
+  `Mission` folds over the robots with it. Every step is a pure function from input to output, so each rule can be
+  tested on its own, and the order of side effects never becomes part of the behaviour.
 
 ## Assumptions and decisions
 
-1. **Scent belongs to a grid point, whatever the direction.** The brief says a scent is left "at the last grid position" and that a move off the world "from a grid point from which a robot has been previously lost" is ignored. So a robot on a scented point is protected from falling off in *any* direction, not only the direction the earlier robot took. For example, a corner point protects both of its edges.
-2. **A lost robot stops.** It runs none of its remaining instructions and reports its last position on the grid followed by `LOST`.
+1. **Scent belongs to a grid point, whatever the direction.** The brief says a scent is left "at the last grid position"
+   and that a move off the world "from a grid point from which a robot has been previously lost" is ignored. So a robot
+   on a scented point is protected from falling off in *any* direction, not only the direction the earlier robot took.
+   For example, a corner point protects both of its edges.
+2. **A lost robot stops.** It runs none of its remaining instructions and reports its last position on the grid followed
+   by `LOST`.
 3. **Ignored moves don't end the robot's run.** The robot just carries on with the next instruction.
-4. **Grid size.** The input gives the upper-right corner, and the lower-left corner is `0 0`. Both coordinates must be between 0 and 50. A grid of `0 0` (a single point) is allowed.
-5. **Starting positions** must be inside the grid. A robot that starts outside it is rejected as invalid input, not reported as `LOST`, because it was never on the grid to be lost from.
-6. **Every robot has exactly two lines:** a position line, and on the very next line its instructions, with at least one command. If the next line is blank or missing, the input is invalid.
-7. **Whitespace.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are ignored after the grid line and between robots, but not between a robot's position line and its instructions (see 6). The instruction line is a single token, so a space inside it, as in `F F`, is reported as an unknown command.
-8. **All robots are placed before the first one moves.** Every robot's position and instructions come from one input file, and all the robots are on the grid at their starting positions before any of them moves. So each robot must start on an unoccupied position: two robots with the same starting position is invalid input, and it is checked before any robot runs.
-9. **Robots can't move into an occupied position.** Robots then move one after another. A position is occupied by a robot that hasn't moved yet (at its start), or by an earlier robot that wasn't lost (at its final position). A move into an occupied position is ignored, and the robot carries on with its next instruction, just like a move blocked by scent. A robot frees its starting position as soon as it moves away. Lost robots have left the grid, so they leave scent but don't occupy a position.
+4. **Grid size.** The input gives the upper-right corner, and the lower-left corner is `0 0`. Both coordinates must be
+   between 0 and 50. A grid of `0 0` (a single point) is allowed.
+5. **Starting positions** must be inside the grid. A robot that starts outside it is rejected as invalid input, not
+   reported as `LOST`, because it was never on the grid to be lost from.
+6. **Every robot has exactly two lines:** a position line, and on the very next line its instructions, with at least one
+   command. If the next line is blank or missing, the input is invalid.
+7. **Whitespace.** Extra spaces between tokens, and spaces at the start or end of a line, are ignored. Blank lines are
+   ignored after the grid line and between robots, but not between a robot's position line and its instructions (see 6).
+   The instruction line is a single token, so a space inside it, as in `F F`, is reported as an unknown command.
+8. **All robots are placed before the first one moves.** Every robot's position and instructions come from one input
+   file, and all the robots are on the grid at their starting positions before any of them moves. So each robot must
+   start on an unoccupied position: two robots with the same starting position is invalid input, and it is checked
+   before any robot runs.
+9. **Robots can't move into an occupied position.** Robots then move one after another. A position is occupied by a
+   robot that hasn't moved yet (at its start), or by an earlier robot that wasn't lost (at its final position). A move
+   into an occupied position is ignored, and the robot carries on with its next instruction, just like a move blocked by
+   scent. A robot frees its starting position as soon as it moves away. Lost robots have left the grid, so they leave
+   scent but don't occupy a position.
+10. **A grid with no robots is valid.** Input that has only the grid line prints nothing and exits normally.
 
 ## Error handling
 
-The brief gives limits (coordinates up to 50, instructions under 100 characters, the letters `L`, `R` and `F`), so input outside those limits is rejected instead of guessed at:
+The brief gives limits (coordinates up to 50, instructions under 100 characters, the letters `L`, `R` and `F`), so input
+outside those limits is rejected instead of guessed at:
 
-| Input | Behaviour |
-|---|---|
-| Malformed grid or position line | Error naming the line number, exit code 1 |
-| Coordinate outside 0–50 | Error, exit code 1 |
-| Unknown orientation or command letter | Error naming the character and line, exit code 1 |
-| Instruction of 100 characters or more | Error, exit code 1 |
-| Position line not followed straight away by an instruction line | Error naming the position line, exit code 1 |
-| Starting position outside the grid | Error naming the line number, exit code 1 |
-| Starting position already taken by another robot | Error naming both line numbers, exit code 1 |
+| Input                                                           | Behaviour                                        |
+|-----------------------------------------------------------------|--------------------------------------------------|
+| Empty input                                                     | Error naming line 1, exit code 1                 |
+| Malformed grid or position line                                 | Error naming the line number, exit code 1        |
+| Coordinate outside 0–50                                         | Error, exit code 1                               |
+| Unknown orientation or command letter                           | Error naming the character and line, exit code 1 |
+| Instruction of 100 characters or more                           | Error, exit code 1                               |
+| Position line not followed straight away by an instruction line | Error naming the position line, exit code 1      |
+| Starting position outside the grid                              | Error naming the line number, exit code 1        |
+| Starting position already taken by another robot                | Error naming both line numbers, exit code 1      |
+| Input file missing or unreadable                                | Error, exit code 1                               |
+| More than one argument                                          | Usage message, exit code 1                       |
 
-**All or nothing.** The whole input is parsed and every robot is run before anything is printed. If any of the errors above occurs, the program prints only the error, to stderr, and exits with code 1. It never prints results for some robots and then fails. Every check, including the starting-position rules, is made by the parser before any robot runs, so each error can name its line. `Mission` checks the starting-position rules again when it is created, so the domain can't be given an invalid mission.
-
-## What I'd do with more time
-
-<!-- TODO: fill in honestly at the end. Some ideas: -->
-
-- Property-based tests, for example: a robot that is never lost always stays on the grid, and four `R`s always bring a robot back to its starting orientation.
-- A `--trace` option that prints every step, to help debug long instruction strings.
-- Package the app as a single runnable jar or native binary, so reviewers don't need Gradle to run it.
+**All or nothing.** Nothing is printed until the whole input has been parsed and every robot has run. Parsing stops at
+the first error: the program prints only that error, to stderr, and exits with code 1, so later errors are only reported
+once earlier ones are fixed. It never prints results for some robots and then fails. Every input check, including the
+starting-position rules, is made by the parser before any robot runs, so each error can name its line. `Mission` checks
+the starting-position rules again when it is created, so the domain can't be given an invalid mission.
 
 ## Use of AI
 
-<!-- TODO: write this yourself, honestly. For example: -->
-
-I used Claude Code as a pair programmer: to discuss the design, draft the scaffolding and docs, and suggest edge cases for tests. I made the design decisions above, reviewed every line, and can explain and extend any of it. `AGENTS.md` holds the instructions I gave the agent.
+I used Claude Code as a pair programmer: to discuss the design, draft the scaffolding and docs, and suggest edge cases
+for tests. I made the design decisions above, reviewed every line, and can explain and extend any of it. `AGENTS.md`
+holds the instructions I gave the agent.

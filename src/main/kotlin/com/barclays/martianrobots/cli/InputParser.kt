@@ -18,7 +18,7 @@ object InputParser {
 
     fun parse(lines: List<String>): ParsedInput {
         val gridLine = lines.firstOrNull() ?: throw InvalidInputException(1, "missing grid line")
-        val grid = Grid(upperRight = parseGrid(gridLine, lineNumber = 1))
+        val grid = Grid(upperRight = parseGrid(gridLine))
 
         val robots = mutableListOf<Robot>()
         val startLineNumbers = mutableMapOf<Position, Int>()
@@ -47,7 +47,7 @@ object InputParser {
         return ParsedInput(grid, robots)
     }
 
-    private fun parseGrid(line: String, lineNumber: Int): Position {
+    private fun parseGrid(line: String, lineNumber: Int = 1): Position {
         val tokens = line.tokens()
         val x = tokens.getOrNull(0)?.toIntOrNull()
         val y = tokens.getOrNull(1)?.toIntOrNull()
